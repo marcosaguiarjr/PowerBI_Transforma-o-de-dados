@@ -1,0 +1,533 @@
+/* ============================================================
+   BANCO DE DADOS - AZURE COMPANY
+   MySQL
+   ============================================================ */
+
+
+/* ============================================================
+   1. CRIAÇÃO DO BANCO
+   ============================================================ */
+
+DROP DATABASE IF EXISTS azure_company;
+
+CREATE DATABASE azure_company;
+
+USE azure_company;
+
+
+/* ============================================================
+   2. TABELA DEPARTAMENT
+   ============================================================ */
+
+CREATE TABLE departament (
+    Dname VARCHAR(15) NOT NULL,
+    Dnumber INT NOT NULL,
+    Mgr_ssn CHAR(9),
+    Mgr_start_date DATE,
+    Dept_create_date DATE,
+
+    PRIMARY KEY (Dnumber),
+
+    UNIQUE (Dname),
+
+    CHECK (Dept_create_date < Mgr_start_date)
+);
+
+
+/* ============================================================
+   3. TABELA EMPLOYEE
+   ============================================================ */
+
+CREATE TABLE employee (
+    Fname VARCHAR(15) NOT NULL,
+    Minit CHAR(1),
+    Lname VARCHAR(15) NOT NULL,
+    Ssn CHAR(9) NOT NULL,
+    Bdate DATE,
+    Address VARCHAR(30),
+    Sex CHAR(1),
+    Salary DECIMAL(10,2),
+    Super_ssn CHAR(9),
+    Dno INT NOT NULL DEFAULT 1,
+
+    PRIMARY KEY (Ssn)
+);
+
+
+/* ============================================================
+   4. FOREIGN KEYS DE EMPLOYEE
+   ============================================================ */
+
+ALTER TABLE employee
+ADD FOREIGN KEY (Super_ssn)
+REFERENCES employee(Ssn)
+ON DELETE SET NULL
+ON UPDATE CASCADE;
+
+
+/* ============================================================
+   5. FOREIGN KEY EMPLOYEE -> DEPARTAMENT
+   ============================================================ */
+
+ALTER TABLE employee
+ADD FOREIGN KEY (Dno)
+REFERENCES departament(Dnumber)
+ON UPDATE CASCADE;
+
+
+/* ============================================================
+   6. FOREIGN KEY DEPARTAMENT -> EMPLOYEE
+   ============================================================ */
+
+ALTER TABLE departament
+ADD FOREIGN KEY (Mgr_ssn)
+REFERENCES employee(Ssn)
+ON UPDATE CASCADE;
+
+
+/* ============================================================
+   7. TABELA DEPT_LOCATIONS
+   ============================================================ */
+
+CREATE TABLE dept_locations (
+    Dnumber INT NOT NULL,
+    Dlocation VARCHAR(15) NOT NULL,
+
+    PRIMARY KEY (Dnumber, Dlocation)
+);
+
+
+/* ============================================================
+   8. FOREIGN KEY DEPT_LOCATIONS
+   ============================================================ */
+
+ALTER TABLE dept_locations
+ADD FOREIGN KEY (Dnumber)
+REFERENCES departament(Dnumber)
+ON DELETE CASCADE
+ON UPDATE CASCADE;
+
+
+/* ============================================================
+   9. TABELA PROJECT
+   ============================================================ */
+
+CREATE TABLE project (
+    Pname VARCHAR(15) NOT NULL,
+    Pnumber INT NOT NULL,
+    Plocation VARCHAR(15),
+    Dnum INT NOT NULL,
+
+    PRIMARY KEY (Pnumber),
+
+    UNIQUE (Pname)
+);
+
+
+/* ============================================================
+   10. FOREIGN KEY PROJECT -> DEPARTAMENT
+   ============================================================ */
+
+ALTER TABLE project
+ADD FOREIGN KEY (Dnum)
+REFERENCES departament(Dnumber)
+ON UPDATE CASCADE;
+
+
+/* ============================================================
+   11. TABELA WORKS_ON
+   ============================================================ */
+
+CREATE TABLE works_on (
+    Essn CHAR(9) NOT NULL,
+    Pno INT NOT NULL,
+    Hours DECIMAL(3,1) NOT NULL,
+
+    PRIMARY KEY (Essn, Pno)
+);
+
+
+/* ============================================================
+   12. FOREIGN KEYS WORKS_ON
+   ============================================================ */
+
+ALTER TABLE works_on
+ADD FOREIGN KEY (Essn)
+REFERENCES employee(Ssn)
+ON UPDATE CASCADE;
+
+ALTER TABLE works_on
+ADD FOREIGN KEY (Pno)
+REFERENCES project(Pnumber)
+ON UPDATE CASCADE;
+
+
+/* ============================================================
+   13. TABELA DEPENDENT
+   ============================================================ */
+
+CREATE TABLE dependent (
+    Essn CHAR(9) NOT NULL,
+    Dependent_name VARCHAR(15) NOT NULL,
+    Sex CHAR(1),
+    Bdate DATE,
+    Relationship VARCHAR(8),
+
+    PRIMARY KEY (Essn, Dependent_name)
+);
+
+
+/* ============================================================
+   14. FOREIGN KEY DEPENDENT -> EMPLOYEE
+   ============================================================ */
+
+ALTER TABLE dependent
+ADD FOREIGN KEY (Essn)
+REFERENCES employee(Ssn)
+ON DELETE CASCADE
+ON UPDATE CASCADE;
+
+
+/* ============================================================
+   15. INSERT EMPLOYEE
+   ============================================================ */
+
+INSERT INTO employee
+(Fname, Minit, Lname, Ssn, Bdate, Address, Sex, Salary, Super_ssn, Dno)
+VALUES
+('John', 'B', 'Smith', '123456789', '1965-01-09',
+ '731-Fondren-Houston-TX', 'M', 30000, NULL, 1),
+
+('Franklin', 'T', 'Wong', '333445555', '1955-12-08',
+ '638-Voss-Houston-TX', 'M', 40000, '888665555', 1),
+
+('Alicia', 'J', 'Zelaya', '999887777', '1968-01-19',
+ '3321-Castle-Spring-TX', 'F', 25000, '987654321', 1),
+
+('Jennifer', 'S', 'Wallace', '987654321', '1941-06-20',
+ '291-Berry-Bellaire-TX', 'F', 43000, '888665555', 1),
+
+('Ramesh', 'K', 'Narayan', '666884444', '1962-09-15',
+ '975-Fire-Oak-Humble-TX', 'M', 38000, '333445555', 1),
+
+('Joyce', 'A', 'English', '453453453', '1972-07-31',
+ '5631-Rice-Houston-TX', 'F', 25000, '333445555', 1),
+
+('Ahmad', 'V', 'Jabbar', '987987987', '1969-03-29',
+ '980-Dallas-Houston-TX', 'M', 25000, '987654321', 1),
+
+('James', 'E', 'Borg', '888665555', '1937-11-10',
+ '450-Stone-Houston-TX', 'M', 55000, NULL, 1);
+
+
+/* ============================================================
+   16. INSERT DEPARTAMENT
+   ============================================================ */
+
+INSERT INTO departament
+(Dname, Dnumber, Mgr_ssn, Mgr_start_date, Dept_create_date)
+VALUES
+('Research', 5, '333445555', '1988-05-22', '1986-05-22'),
+
+('Administration', 4, '987654321', '1995-01-01', '1994-01-01'),
+
+('Headquarters', 1, '888665555', '1981-06-19', '1980-06-19');
+
+
+/* ============================================================
+   17. CORREÇÃO DOS DEPARTAMENTOS DOS FUNCIONÁRIOS
+   ============================================================ */
+
+UPDATE employee
+SET Dno = CASE Ssn
+    WHEN '123456789' THEN 5
+    WHEN '333445555' THEN 5
+    WHEN '999887777' THEN 4
+    WHEN '987654321' THEN 4
+    WHEN '666884444' THEN 5
+    WHEN '453453453' THEN 5
+    WHEN '987987987' THEN 4
+    WHEN '888665555' THEN 1
+END
+WHERE Ssn IN (
+    '123456789',
+    '333445555',
+    '999887777',
+    '987654321',
+    '666884444',
+    '453453453',
+    '987987987',
+    '888665555'
+);
+
+
+/* ============================================================
+   18. INSERT DEPT_LOCATIONS
+   ============================================================ */
+
+INSERT INTO dept_locations
+(Dnumber, Dlocation)
+VALUES
+(1, 'Houston'),
+(4, 'Stafford'),
+(5, 'Bellaire'),
+(5, 'Sugarland'),
+(5, 'Houston');
+
+
+/* ============================================================
+   19. INSERT PROJECT
+   ============================================================ */
+
+INSERT INTO project
+(Pname, Pnumber, Plocation, Dnum)
+VALUES
+('ProductX', 1, 'Bellaire', 5),
+('ProductY', 2, 'Sugarland', 5),
+('ProductZ', 3, 'Houston', 5),
+('Computerization', 10, 'Stafford', 4),
+('Reorganization', 20, 'Houston', 1),
+('Newbenefits', 30, 'Stafford', 4);
+
+
+/* ============================================================
+   20. INSERT WORKS_ON
+   ============================================================ */
+
+INSERT INTO works_on
+(Essn, Pno, Hours)
+VALUES
+('123456789', 1, 32.5),
+('123456789', 2, 7.5),
+('666884444', 3, 40.0),
+('453453453', 1, 20.0),
+('453453453', 2, 20.0),
+('333445555', 2, 10.0),
+('333445555', 3, 10.0),
+('333445555', 10, 10.0),
+('333445555', 20, 10.0),
+('999887777', 30, 30.0),
+('999887777', 10, 10.0),
+('987987987', 10, 35.0),
+('987987987', 30, 5.0),
+('987654321', 30, 20.0),
+('987654321', 20, 15.0),
+('888665555', 20, 0.0);
+
+
+/* ============================================================
+   21. INSERT DEPENDENT
+   ============================================================ */
+
+INSERT INTO dependent
+(Essn, Dependent_name, Sex, Bdate, Relationship)
+VALUES
+('333445555', 'Alice', 'F', '1986-04-05', 'Daughter'),
+('333445555', 'Theodore', 'M', '1983-10-25', 'Son'),
+('333445555', 'Joy', 'F', '1958-05-03', 'Spouse'),
+('987654321', 'Abner', 'M', '1942-02-28', 'Spouse'),
+('123456789', 'Michael', 'M', '1988-01-04', 'Son'),
+('123456789', 'Alice', 'F', '1988-12-30', 'Daughter'),
+('123456789', 'Elizabeth', 'F', '1967-05-05', 'Spouse');
+
+
+/* ============================================================
+   22. CONSULTAS BÁSICAS
+   ============================================================ */
+
+SELECT * FROM employee;
+
+SELECT * FROM dependent;
+
+SELECT * FROM departament;
+
+SELECT * FROM project;
+
+
+/* ============================================================
+   23. DATA DE NASCIMENTO E ENDEREÇO DO JOHN SMITH
+   ============================================================ */
+
+SELECT Bdate, Address
+FROM employee
+WHERE Fname = 'John'
+  AND Minit = 'B'
+  AND Lname = 'Smith';
+
+
+/* ============================================================
+   24. DEPARTAMENTO RESEARCH
+   ============================================================ */
+
+SELECT *
+FROM departament
+WHERE Dname = 'Research';
+
+
+/* ============================================================
+   25. FUNCIONÁRIOS DO DEPARTAMENTO RESEARCH
+   ============================================================ */
+
+SELECT e.Fname, e.Lname, e.Address
+FROM employee e
+JOIN departament d
+    ON e.Dno = d.Dnumber
+WHERE d.Dname = 'Research';
+
+
+/* ============================================================
+   26. DEPARTAMENTOS E SUAS LOCALIZAÇÕES
+   ============================================================ */
+
+SELECT
+    d.Dname AS Department,
+    l.Dlocation AS Location
+FROM departament d
+JOIN dept_locations l
+    ON d.Dnumber = l.Dnumber;
+
+
+/* ============================================================
+   27. DEPARTAMENTOS E SEUS GERENTES
+   ============================================================ */
+
+SELECT
+    d.Dname AS Department,
+    CONCAT(e.Fname, ' ', e.Lname) AS Manager
+FROM departament d
+JOIN employee e
+    ON d.Mgr_ssn = e.Ssn;
+
+
+/* ============================================================
+   28. PROJETOS LOCALIZADOS EM STAFFORD
+   ============================================================ */
+
+SELECT *
+FROM project
+WHERE Plocation = 'Stafford';
+
+
+/* ============================================================
+   29. PROJETOS DE STAFFORD E SEUS GERENTES
+   ============================================================ */
+
+SELECT
+    p.Pnumber,
+    p.Dnum,
+    e.Lname,
+    e.Address,
+    e.Bdate
+FROM project p
+JOIN departament d
+    ON p.Dnum = d.Dnumber
+JOIN employee e
+    ON d.Mgr_ssn = e.Ssn
+WHERE p.Plocation = 'Stafford';
+
+
+/* ============================================================
+   30. FUNCIONÁRIOS DOS DEPARTAMENTOS 3, 6 E 9
+   ============================================================ */
+
+SELECT *
+FROM employee
+WHERE Dno IN (3, 6, 9);
+
+
+/* ============================================================
+   31. SALÁRIO E INSS
+   ============================================================ */
+
+SELECT
+    Fname,
+    Lname,
+    Salary,
+    Salary * 0.011 AS INSS
+FROM employee;
+
+
+/* ============================================================
+   32. INSS ARREDONDADO
+   ============================================================ */
+
+SELECT
+    Fname,
+    Lname,
+    Salary,
+    ROUND(Salary * 0.011, 2) AS INSS
+FROM employee;
+
+
+/* ============================================================
+   33. EMPREGADOS QUE TRABALHAM NO PRODUCTX
+   ============================================================ */
+
+SELECT
+    e.Fname,
+    e.Lname,
+    e.Salary * 1.10 AS increased_sal
+FROM employee e
+JOIN works_on w
+    ON e.Ssn = w.Essn
+JOIN project p
+    ON w.Pno = p.Pnumber
+WHERE p.Pname = 'ProductX';
+
+
+/* ============================================================
+   34. GERENTES E DEPARTAMENTOS
+   ============================================================ */
+
+SELECT
+    d.Dname AS Department,
+    CONCAT(e.Fname, ' ', e.Lname) AS Manager
+FROM departament d
+JOIN employee e
+    ON d.Mgr_ssn = e.Ssn;
+
+
+/* ============================================================
+   35. FUNCIONÁRIOS DO RESEARCH
+   ============================================================ */
+
+SELECT
+    e.Fname,
+    e.Lname,
+    e.Address
+FROM employee e
+JOIN departament d
+    ON e.Dno = d.Dnumber
+WHERE d.Dname = 'Research';
+
+
+/* ============================================================
+   36. FUNCIONÁRIOS E SEUS DEPENDENTES
+   ============================================================ */
+
+SELECT
+    e.Ssn,
+    CONCAT(e.Fname, ' ', e.Lname) AS Employee,
+    COUNT(d.Essn) AS quantidade_dependentes
+FROM employee e
+LEFT JOIN dependent d
+    ON e.Ssn = d.Essn
+GROUP BY e.Ssn, e.Fname, e.Lname;
+
+
+/* ============================================================
+   37. VERIFICAÇÃO FINAL
+   ============================================================ */
+
+SELECT
+    (SELECT COUNT(*) FROM employee) AS employee,
+    (SELECT COUNT(*) FROM departament) AS departament,
+    (SELECT COUNT(*) FROM dept_locations) AS dept_locations,
+    (SELECT COUNT(*) FROM project) AS project,
+    (SELECT COUNT(*) FROM works_on) AS works_on,
+    (SELECT COUNT(*) FROM dependent) AS dependent;
+
+
+/* ============================================================
+   FIM DO SCRIPT
+   ============================================================ */
